@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Normalize Text File</title>
+</head>
+<body>
+
+<h2>Normalize Text File</h2>
+
+<form action="" method="post" enctype="multipart/form-data">
+    Select text file: <input type="file" name="file"><br><br>
+
+    Mode:
+    <select name="mode">
+        <option value="compress">Compress</option>
+        <option value="expand">Expand</option>
+    </select><br><br>
+
+    <input type="submit" name="submit" value="Normalize">
+</form>
+
+<?php
+if (isset($_POST['submit'])) {
+
+    if (!empty($_FILES['file']['tmp_name'])) {
+
+        $tmpName = $_FILES['file']['tmp_name'];
+        $fileName = $_FILES['file']['read.text'];
+        $mode = $_POST['mode'];
+
+        move_uploaded_file($tmpName, $fileName);
+
+        $corrections = normalizeText($fileName, $mode);
+
+        echo "<p><strong>File normalized successfully.</strong></p>";
+        echo "<p>Total corrections made: $corrections</p>";
+        echo "<p>Corrected file saved as: $fileName</p>";
+    } else {
+        echo "<p>Please upload a text file.</p>";
+    }
+}
+
+function normalizeText($fileName, $mode) {
+    $content = file($fileName, FILE_IGNORE_NEW_LINES);
+    $corrected = [];
+    $correctionCount = 0;
+
+    foreach ($content as $line) {
+        $original = $line;
+
+        $line = preg_replace('/[\t ]+/', ' ', $line);
+        if ($original !== $line) $correctionCount++;
+
+        if (preg_match('/^[[:punct:]]+$/', $line)) {
+            echo "<p>Punctuation-only line detected: \"$line\"</p>";
+        }
+
+        $original = $line;
+        $line = trim($line);
+        if ($original !== $line) $correctionCount++;
+
+        $corrected[] = $line;
+    }
+
+    if ($mode == "compress") {
+        $compressed = [];
+        $previousBlank = false;
+
+        foreach ($corrected as $line) {
+            if ($line === "") {
+                if ($previousBlank) {
+                    $correctionCount++;
+                    continue;
+                }
+                $previousBlank = true;
+            } else {
+                $previousBlank = false;
+            }
+
+            $compressed[] = $line;
+        }
+
+        $corrected = $compressed;
+    }
+
+    if ($mode == "expand") {
+        $expanded = [];
+
+        for ($i = 0; $i < count($corrected); $i++) {
+            $expanded[] = $corrected[$i];
+
+            if ($corrected[$i] !== "" && $i < count($corrected) - 1) {
+                $expanded[] = "";
+                $correctionCount++;
+            }
+        }
+
+        $corrected = $expanded;
+    }
+
+    file_put_contents($fileName, implode("\n", $corrected));
+
+    return $correctionCount;
+}
+?>
+
+</body>
+</html>
+
+

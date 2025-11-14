@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Water Bill Calculator</title>
+</head>
+<body>
+
+<h2>Water Bill Calculator</h2>
+
+<label>Enter kiloliters used:</label>
+<input type="text" id="klInput">
+<button onclick="processBill()">Submit</button>
+
+<p id="currentBill"></p>
+<p id="runningTotal"></p>
+
+<script>
+    let totalBill = 0;
+
+    function calculateBill(kl) {
+        let serviceCharge = 50;
+        let cost = 0;
+
+        if (kl <= 15) {
+            cost = kl * 2;
+        } else if (kl <= 35) {
+            cost = (15 * 2) + ((kl - 15) * 5);
+        } else {
+            cost = (15 * 2) + (20 * 5) + ((kl - 35) * 10);
+        }
+
+        return cost + serviceCharge;
+    }
+
+    function processBill() {
+        const inputField = document.getElementById("klInput");
+        const value = inputField.value.trim();
+
+        if (isNaN(value) || value === "") {
+            alert("Please enter a valid numeric value.");
+            return;
+        }
+
+        const klUsed = parseFloat(value);
+
+        if (klUsed < 0) {
+            alert("Please enter a non-negative number.");
+            return;
+        }
+
+        const bill = calculateBill(klUsed);
+        totalBill += bill;
+
+        document.getElementById("currentBill").innerHTML =
+            "Bill for this household: ₹" + bill.toFixed(2);
+
+        document.getElementById("runningTotal").innerHTML =
+            "Running total of all bills: ₹" + totalBill.toFixed(2);
+
+        inputField.value = "";
+    }
+</script>
+
+</body>
+</html>
+
+
+
